@@ -111,6 +111,7 @@ class YjsptSession extends IDSSession {
         )
         .then((value) => value.data['datas']['kfdxnxqcx']['rows'][0]['XNXQDM']);
     if (user["currentSemester"] != semesterCode) {
+      addUser("currentSemester", semesterCode);
       user["currentSemester"] = semesterCode;
     }
 
@@ -138,7 +139,11 @@ class YjsptSession extends IDSSession {
         .add(weeks: 1 - int.parse(currentWeek), days: -weekDay)
         .format(pattern: "yyyy-MM-dd");
 
+    developer.log("currentStartDay is $termStartDay, fetching...",
+        name: "Yjspt getClasstable");
+
     if (user["currentStartDay"] != termStartDay) {
+      addUser("currentStartDay", termStartDay);
       user["currentStartDay"] = termStartDay;
     }
   }

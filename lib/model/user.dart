@@ -28,6 +28,8 @@ Future<void> initUser() async {
   user["swift"] = prefs.getString("swift");
   user["decorated"] = prefs.getString("decorated");
   user["decoration"] = prefs.getString("decoration");
+  user["currentSemester"] = prefs.getString("currentSemester");
+  user["currentStartDay"] = prefs.getString("currentStartDay");
 }
 
 Future<void> addUser(String key, String value) async {

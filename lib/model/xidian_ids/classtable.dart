@@ -14,13 +14,11 @@ class ClassDetail {
   String name; // 名称
   String? teacher; // 老师
   String? code; // 课程序号
-  String? number; // 班级序号
 
   ClassDetail({
     required this.name,
     this.teacher,
     this.code,
-    this.number,
   });
 
   @override
@@ -76,5 +74,7 @@ List<String> time = [
   "19:00",
   "19:45",
   "19:55",
-  "20:30",
+  "20:35",
+  "20:40",
+  "21:25",
 ];
