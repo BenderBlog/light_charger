@@ -17,6 +17,7 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:jiffy/jiffy.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:watermeter_postgraduate/model/user.dart';
 import 'package:watermeter_postgraduate/repository/xidian_ids/yjspt_session.dart';
 
 class ClassTableFile extends YjsptSession {
@@ -34,6 +35,9 @@ class ClassTableFile extends YjsptSession {
           "https://yjspt.xidian.edu.cn/gsapp/sys/wdkbapp/modules/xskcb/kfdxnxqcx.do",
         )
         .then((value) => value.data['datas']['kfdxnxqcx']['rows'][0]['XNXQDM']);
+    if (user["currentSemester"] != semesterCode) {
+      user["currentSemester"] = semesterCode;
+    }
 
     developer.log("Fetch the day the semester begin.",
         name: "Yjspt getClasstable");
@@ -57,6 +61,10 @@ class ClassTableFile extends YjsptSession {
         .add(weeks: 1 - int.parse(currentWeek), days: -weekDay)
         .format(pattern: "yyyy-MM-dd");
 
+    if (user["currentStartDay"] != termStartDay) {
+      user["currentStartDay"] = termStartDay;
+    }
+
     developer.log(
         "Will get $semesterCode which start at $termStartDay, fetching...",
         name: "Yjspt getClasstable");
@@ -66,7 +74,7 @@ class ClassTableFile extends YjsptSession {
       data: {'XNXQDM': semesterCode, "*order": "-ZCBH"},
     ).then((value) => value.data['datas']['xspkjgcx']);
     if (qResult['extParams']['code'] != 1) {
-      throw qResult['extParams']['msg'] + "在已安排课程";
+      throw Exception("${qResult['extParams']['msg']}在已安排课程");
     }
 
     developer.log("Caching...", name: "Yjspt getClasstable");
@@ -105,28 +113,17 @@ class ClassTableFile extends YjsptSession {
         DateTime.now().difference(file.lastModifiedSync()).inDays <= 3) {
       return jsonDecode(file.readAsStringSync());
     } else {
-      var qResult = await getFromWeb();
-      file.writeAsStringSync(jsonEncode(qResult));
-      return qResult;
+      try {
+        var qResult = await getFromWeb();
+        file.writeAsStringSync(jsonEncode(qResult));
+        return qResult;
+      } catch (e) {
+        if (isExist) {
+          return jsonDecode(file.readAsStringSync());
+        } else {
+          rethrow;
+        }
+      }
     }
-
-    /*
-    onResponse(70, "获取未安排内容");
-    var notOnTable = await dio.post(
-      "https://Yjspt.xidian.edu.cn/jwapp/sys/wdkb/modules/xskcb/cxxsllsywpk.do",
-      data: {'XNXQDM': semesterCode},
-    ).then((value) => value.data['datas']['cxxsllsywpk']);
-    if (qResult['extParams']['code'] != 1) {
-      throw qResult['extParams']['msg'] + "在未安排课程";
-    }
-    onResponse(90, "处理未安排内容");
-    for (var i in notOnTable["rows"]) {
-      classData.notOnTable.add(ClassDetail(
-        name: i["KCM"],
-        teacher: i["SKJS"],
-        place: i["JASDM"],
-      ));
-    }
-    */
   }
 }

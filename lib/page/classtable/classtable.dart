@@ -603,6 +603,7 @@ class PageState extends State<ClassTableWindow> {
   Widget _buttomInformation(Set<int> conflict) {
     Widget classInfoBox(TimeArrangement i) {
       ClassDetail toShow = controller.classDetail[i.index];
+      TimeArrangement timeArrangement = controller.timeArrangement[i.index];
       var infoColor = colorList[i.index % colorList.length];
 
       Widget weekDoc(int index, bool isOccupied) => ClipOval(
@@ -657,7 +658,7 @@ class PageState extends State<ClassTableWindow> {
                 const SizedBox(width: 10),
                 customListTile(
                   Icons.room,
-                  toShow.place ?? "地点未定",
+                  timeArrangement.classroom ?? "地点未定",
                 ),
                 const SizedBox(width: 10),
                 customListTile(
@@ -675,7 +676,7 @@ class PageState extends State<ClassTableWindow> {
                 ),
                 customListTile(
                   Icons.room,
-                  toShow.place ?? "地点未定",
+                  timeArrangement.classroom ?? "地点未定",
                 ),
                 customListTile(
                   Icons.access_time_filled_outlined,

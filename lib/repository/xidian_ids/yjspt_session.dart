@@ -15,6 +15,7 @@ Thanks xidian-script and libxdauth!
 import 'dart:convert';
 
 import 'dart:developer' as developer;
+import 'package:jiffy/jiffy.dart';
 import 'package:watermeter_postgraduate/repository/xidian_ids/ids_session.dart';
 import 'package:watermeter_postgraduate/model/user.dart';
 
@@ -97,6 +98,48 @@ class YjsptSession extends IDSSession {
       throw detailed.toString();
     } else {
       await addUser("name", detailed["rows"][0]["XM"]);
+    }
+
+    String get = await useApp("wdkbapp");
+    await dio.post(get);
+
+    developer.log("Fetch the semester information.",
+        name: "Yjspt getClasstable");
+    String semesterCode = await dio
+        .post(
+          "https://yjspt.xidian.edu.cn/gsapp/sys/wdkbapp/modules/xskcb/kfdxnxqcx.do",
+        )
+        .then((value) => value.data['datas']['kfdxnxqcx']['rows'][0]['XNXQDM']);
+    if (user["currentSemester"] != semesterCode) {
+      user["currentSemester"] = semesterCode;
+    }
+
+    var now = DateTime.now();
+
+    developer.log("Fetch the day the semester begin.",
+        name: "Yjspt getClasstable");
+    var currentWeek = await dio.post(
+      'https://yjspt.xidian.edu.cn/gsapp/sys/yjsemaphome/portal/queryRcap.do',
+      data: {'day': Jiffy.parseFromDateTime(now).format(pattern: "yyyyMMdd")},
+    ).then((value) => value.data);
+
+    developer.log(
+        "${Jiffy.parseFromDateTime(now).format(pattern: "yyyyMMdd")}  $currentWeek, fetching...",
+        name: "Yjspt getClasstable");
+
+    currentWeek = RegExp(r'[0-9]+').firstMatch(currentWeek["xnxq"])![0]!;
+
+    developer.log("Current week is $currentWeek, fetching...",
+        name: "Yjspt getClasstable");
+
+    int weekDay = now.weekday - 1;
+
+    String termStartDay = Jiffy.parseFromDateTime(now)
+        .add(weeks: 1 - int.parse(currentWeek), days: -weekDay)
+        .format(pattern: "yyyy-MM-dd");
+
+    if (user["currentStartDay"] != termStartDay) {
+      user["currentStartDay"] = termStartDay;
     }
   }
 }

@@ -43,7 +43,8 @@ class ScoreFile extends YjsptSession {
     ).then((value) => value.data);
     developer.log("Dealing the score data.", name: "Yjspt getScore");
     if (getData["datas"]["xscjcx"]["extParams"]["code"] != 1) {
-      throw getData.toString();
+      throw GetScoreFailedException(
+          getData['datas']['xscjcx']["extParams"]["msg"]);
     }
     int j = 0;
     for (var i in getData['datas']['xscjcx']['rows']) {
@@ -60,31 +61,15 @@ class ScoreFile extends YjsptSession {
         isNoNeedStudy: i["BZSM"] == "免修" ? true : false,
       ));
       j++;
-      /* //Unable to work.
-      if (i["DJCJLXDM"] == "100") {
-        try {
-          var anotherResponse = await dio.post(
-              "https://Yjspt.xidian.edu.cn/jwapp/sys/cjcx/modules/cjcx/cxkxkgcxlrcj.do",
-              data: {
-                "JXBID": scoreTable.last.classID,
-                'XH': user["idsAccount"],
-                'XNXQDM':scoreTable.last.year,
-                'CKLY': "1",
-              },
-            options: Options(
-              headers: {
-                "DNT": "1",
-                "Referer": firstPost
-              },
-            )
-          );
-          //print(anotherResponse.data);
-        } on DioError catch (e) {
-          //print("WTF:" + e.toString());
-          break;
-        }
-      }*/
     }
     return toReturn;
   }
+}
+
+class GetScoreFailedException implements Exception {
+  final String msg;
+  const GetScoreFailedException(this.msg);
+
+  @override
+  String toString() => msg;
 }

@@ -13,7 +13,7 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
   static final _page = [
-    MainPage(),
+    const MainPage(),
     const SettingWindow(),
   ];
 

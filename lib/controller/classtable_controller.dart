@@ -11,6 +11,7 @@ class ClassTableController extends GetxController {
 
   // Classtable Data
   List<ClassDetail> classDetail = <ClassDetail>[];
+  List<ClassDetail> notArranged = <ClassDetail>[];
   List<TimeArrangement> timeArrangement = <TimeArrangement>[];
   String semesterCode = "";
   String termStartDay = "";
@@ -31,9 +32,102 @@ class ClassTableController extends GetxController {
   bool? isNext;
 
   @override
+  void onInit() {
+    // For info
+    semesterCode = user["currentSemester"]!;
+    currentWeek = (Jiffy.now().dayOfYear -
+            Jiffy.parseFromDateTime(DateTime.parse(user["currentStartDay"]!))
+                .dayOfYear) ~/
+        7;
+    super.onInit();
+  }
+
+  @override
   void onReady() async {
     await updateClassTable();
     update();
+  }
+
+  void updateCurrent() {
+    // Get the current time.
+    if (currentWeek >= 0 && currentWeek < semesterLength) {
+      developer.log("Get the current class", name: "ClassTableController");
+      DateTime now = DateTime.now();
+      if ((now.hour >= 8 && now.hour < 20) ||
+          (now.hour == 20 && now.minute < 35)) {
+        // Check the index.
+        int index = -1;
+        developer.log(
+          "Current time is $now",
+          name: "ClassTableController",
+        );
+        for (int i = 0; i < time.length; ++i) {
+          var split = time[i].split(":");
+
+          int toDeal = 60 * int.parse(split[0]) + int.parse(split[1]);
+          int currentTime = 60 * now.hour + now.minute;
+
+          if (currentTime < toDeal) {
+            // The time is after the time[i-1]
+            index = i - 1;
+            break;
+          }
+        }
+
+        if (index >= 0) {
+          developer.log(
+            "Current time is after ${time[index]} $index",
+            name: "ClassTableController",
+          );
+          // If in the class, the current class.
+          // Else, the previous class.
+          int currentClassIndex =
+              pretendLayout[currentWeek][now.weekday - 1][index ~/ 2][0];
+          // In the class
+          if (index % 2 == 0) {
+            developer.log(
+              "In class.",
+              name: "ClassTableController",
+            );
+            if (currentClassIndex != -1) {
+              isNext = false;
+              timeArrangementToShow = timeArrangement[currentClassIndex];
+            }
+          } else {
+            developer.log(
+              "Not in class, seek the next class...",
+              name: "ClassTableController",
+            );
+            // See the next class.
+            int nextIndex = pretendLayout[currentWeek][now.weekday - 1]
+                [(index + 1) ~/ 2][0];
+            // If really have class.
+            if (nextIndex != -1) {
+              if (currentClassIndex != nextIndex) {
+                isNext = true;
+              } else {
+                isNext = false;
+              }
+              timeArrangementToShow = timeArrangement[nextIndex];
+            }
+          }
+          if (timeArrangementToShow != null &&
+              timeArrangementToShow!.index != -1) {
+            classToShow = classDetail[timeArrangementToShow!.index];
+          }
+        } else {
+          developer.log(
+            "Current time is before ${time[0]} 0",
+            name: "ClassTableController",
+          );
+          isNext = true;
+          int currentClassIndex =
+              pretendLayout[currentWeek][now.weekday - 1][0][0];
+          timeArrangementToShow = timeArrangement[currentClassIndex];
+          classToShow = classDetail[timeArrangementToShow!.index];
+        }
+      }
+    }
   }
 
   Future<void> updateClassTable({bool isForce = false}) async {
@@ -53,43 +147,37 @@ class ClassTableController extends GetxController {
       semesterLength = 0;
       for (var i in value["rows"]) {
         var toDeal = ClassDetail(
-          name: i["KCMC"],
-          teacher: i["JSXM"],
-          place: i["JASMC"],
+          name: i["KCM"],
+          teacher: i["SKJS"],
+          code: i["KCH"],
+          number: i["KXH"],
         );
         if (!classDetail.contains(toDeal)) {
           classDetail.add(toDeal);
         }
-
-        bool flag = false;
-        for (var j in timeArrangement) {
-          if (j.index == classDetail.indexOf(toDeal) && j.day == i["XQ"]) {
-            if (j.stop + 1 == i["KSJCDM"]) {
-              j.stop++;
-            } else {
-              j.start--;
-            }
-
-            flag = true;
-            break;
-          }
+        timeArrangement.add(
+          TimeArrangement(
+            index: classDetail.indexOf(toDeal),
+            start: int.parse(i["KSJC"]),
+            stop: int.parse(i["JSJC"]),
+            day: int.parse(i["SKXQ"]),
+            weekList: i["SKZC"].toString(),
+            classroom: i["JASDM"],
+          ),
+        );
+        if (i["SKZC"].toString().length > semesterLength) {
+          semesterLength = i["SKZC"].toString().length;
         }
+      }
 
-        if (!flag) {
-          timeArrangement.add(
-            TimeArrangement(
-              index: classDetail.indexOf(toDeal),
-              start: i["KSJCDM"],
-              stop: i["JSJCDM"],
-              day: i["XQ"],
-              weekList: i["ZCBH"].toString(),
-            ),
-          );
-        }
-
-        if (i["ZCBH"].toString().length > semesterLength) {
-          semesterLength = i["ZCBH"].toString().length;
-        }
+      // Deal with the not arranged data.
+      for (var i in value["notArranged"]) {
+        notArranged.add(ClassDetail(
+          name: i["KCM"],
+          teacher: i["SKJS"],
+          code: i["KCH"],
+          number: i["KXH"],
+        ));
       }
 
       // Uncomment to see the conflict.
@@ -123,7 +211,7 @@ class ClassTableController extends GetxController {
       }
 
       // Get the current index.
-      currentWeek = (Jiffy.parseFromDateTime(DateTime.now()).dayOfYear -
+      currentWeek = (Jiffy.now().dayOfYear -
               Jiffy.parseFromDateTime(startDay).dayOfYear) ~/
           7;
 
@@ -132,7 +220,7 @@ class ClassTableController extends GetxController {
       //    for week-day~class array
       pretendLayout = List.generate(
         semesterLength,
-        (week) => List.generate(7, (day) => List.generate(11, (classes) => [])),
+        (week) => List.generate(7, (day) => List.generate(10, (classes) => [])),
       );
 
       // 2. init each week's array
@@ -170,91 +258,12 @@ class ClassTableController extends GetxController {
       }
 
       isGet = true;
-
-      // Get the current time.
-      if (currentWeek >= 0 && currentWeek < semesterLength) {
-        developer.log("Get the current class", name: "ClassTableController");
-        DateTime now = DateTime.now();
-        if ((now.hour >= 8 && now.hour < 20) ||
-            (now.hour == 20 && now.minute < 35)) {
-          // Check the index.
-          int index = -1;
-          developer.log(
-            "Current time is $now",
-            name: "ClassTableController",
-          );
-          for (int i = 0; i < time.length; ++i) {
-            var split = time[i].split(":");
-
-            int toDeal = 60 * int.parse(split[0]) + int.parse(split[1]);
-            int currentTime = 60 * now.hour + now.minute;
-
-            if (currentTime < toDeal) {
-              // The time is after the time[i-1]
-              index = i - 1;
-              break;
-            }
-          }
-
-          if (index >= 0) {
-            developer.log(
-              "Current time is after ${time[index]} $index",
-              name: "ClassTableController",
-            );
-            // If in the class, the current class.
-            // Else, the previous class.
-            int currentClassIndex =
-                pretendLayout[currentWeek][now.weekday - 1][index ~/ 2][0];
-            // In the class
-            if (index % 2 == 0) {
-              developer.log(
-                "In class.",
-                name: "ClassTableController",
-              );
-              if (currentClassIndex != -1) {
-                isNext = false;
-                timeArrangementToShow = timeArrangement[currentClassIndex];
-              }
-            } else {
-              developer.log(
-                "Not in class, seek the next class...",
-                name: "ClassTableController",
-              );
-              // See the next class.
-              int nextIndex = pretendLayout[currentWeek][now.weekday - 1]
-                  [(index + 1) ~/ 2][0];
-              // If really have class.
-              if (nextIndex != -1) {
-                if (currentClassIndex != nextIndex) {
-                  isNext = true;
-                } else {
-                  isNext = false;
-                }
-                timeArrangementToShow = timeArrangement[nextIndex];
-              }
-            }
-            if (timeArrangementToShow != null &&
-                timeArrangementToShow!.index != -1) {
-              classToShow = classDetail[timeArrangementToShow!.index];
-            }
-          } else {
-            developer.log(
-              "Current time is before ${time[0]} 0",
-              name: "ClassTableController",
-            );
-            isNext = true;
-            int currentClassIndex =
-                pretendLayout[currentWeek][now.weekday - 1][0][0];
-            timeArrangementToShow = timeArrangement[currentClassIndex];
-            classToShow = classDetail[timeArrangementToShow!.index];
-          }
-        }
-      }
-
+      updateCurrent();
       update();
     } catch (e, s) {
       error = e.toString() + s.toString();
-      throw error!;
+      print(error);
+      rethrow;
     }
   }
 }

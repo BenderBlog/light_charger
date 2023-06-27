@@ -23,7 +23,7 @@ late Directory supportPath;
 
 class NetworkSession {
   final PersistCookieJar _idsCookieJar = PersistCookieJar(
-      ignoreExpires: true, storage: FileStorage("${supportPath.path}/ids"));
+      ignoreExpires: true, storage: FileStorage("${supportPath.path}/ids/"));
 
   void clearCookieJar() => _idsCookieJar.deleteAll();
 

@@ -94,13 +94,13 @@ class IDSSession extends NetworkSession {
     if (onResponse != null) {
       onResponse(20, "查询是否需要验证码");
     }
-    var checkCAPTCHA = dio.get(
+    String checkCAPTCHA = await dio.get(
       "http://ids.xidian.edu.cn/authserver/checkNeedCaptcha.htl",
       queryParameters: {
         'username': username,
         '_': DateTime.now().millisecondsSinceEpoch.toString()
       },
-    ).then((value) => value.data) as String;
+    ).then((value) => value.data);
     bool isNeed = checkCAPTCHA.contains("true");
     developer.log("isNeedCAPTCHA: $isNeed.", name: "ids login");
     if (isNeed) {

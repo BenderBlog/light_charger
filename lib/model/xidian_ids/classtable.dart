@@ -6,19 +6,21 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-Please refer to ADDITIONAL TERMS APPLIED TO watermeter_postgraduate SOURCE CODE
+Please refer to ADDITIONAL TERMS APPLIED TO WATERMETER SOURCE CODE
 if you want to use.
 */
 
 class ClassDetail {
   String name; // 名称
   String? teacher; // 老师
-  String? place; // 地方
+  String? code; // 课程序号
+  String? number; // 班级序号
 
   ClassDetail({
     required this.name,
     this.teacher,
-    this.place,
+    this.code,
+    this.number,
   });
 
   @override
@@ -29,15 +31,6 @@ class ClassDetail {
       other is ClassDetail &&
       other.runtimeType == runtimeType &&
       name == other.name;
-
-  @override
-  String toString() {
-    if (place != null) {
-      return "${name.length <= 15 ? name : "${name.substring(0, 14)}..."}\n$place";
-    } else {
-      return name;
-    }
-  }
 }
 
 class TimeArrangement {
@@ -47,10 +40,12 @@ class TimeArrangement {
   int day; // 星期几上课
   int start; // 上课开始
   int stop; // 上课结束
+  String? classroom; // 上课教室
   late int step; // 上课长度
   TimeArrangement({
     required this.index,
     required this.weekList,
+    this.classroom,
     required this.day,
     required this.start,
     required this.stop,
@@ -81,7 +76,5 @@ List<String> time = [
   "19:00",
   "19:45",
   "19:55",
-  "20:35",
-  "20:40",
-  "21:25",
+  "20:30",
 ];

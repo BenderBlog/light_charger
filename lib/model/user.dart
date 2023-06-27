@@ -9,6 +9,8 @@ Map<String, String?> user = {
   "decorated": "false",
   "decoration": "",
   "swift": "0",
+  "currentSemester": "",
+  "currentStartDay": ""
 };
 
 Future<void> initUser() async {
