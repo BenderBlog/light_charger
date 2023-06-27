@@ -450,9 +450,8 @@ class PageState extends State<ClassTableWindow> {
                   padding: const EdgeInsets.all(3),
                   child: Center(
                     child: Text(
-                      controller
-                          .classDetail[controller.timeArrangement[index].index]
-                          .toString(),
+                      "${controller.classDetail[controller.timeArrangement[index].index].name}\n"
+                      "${controller.timeArrangement[index].classroom}",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 11.5,
@@ -508,7 +507,7 @@ class PageState extends State<ClassTableWindow> {
         List<Widget> thisRow = [];
 
         // Choice the day and render it!
-        for (int i = 0; i < 11; ++i) {
+        for (int i = 0; i < time.length / 2; ++i) {
           // Places in the onTable array.
           int places = controller.pretendLayout[weekIndex][index - 1][i].first;
 
@@ -543,7 +542,7 @@ class PageState extends State<ClassTableWindow> {
                                 1.20
                             ? midRowHeightHorizontal
                             : midRowHeightVertical)) /
-                11,
+                (time.length / 2),
             conflict,
           ));
         }

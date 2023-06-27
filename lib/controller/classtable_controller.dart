@@ -155,16 +155,38 @@ class ClassTableController extends GetxController {
         if (!classDetail.contains(toDeal)) {
           classDetail.add(toDeal);
         }
-        timeArrangement.add(
-          TimeArrangement(
-            index: classDetail.indexOf(toDeal),
-            start: i["KSJCDM"],
-            stop: i["JSJCDM"],
-            day: i["XQ"],
-            weekList: i["ZCBH"].toString(),
-            classroom: i["JASMC"],
-          ),
+
+        TimeArrangement toAdd = TimeArrangement(
+          index: classDetail.indexOf(toDeal),
+          start: i["KSJCDM"],
+          stop: i["JSJCDM"],
+          day: i["XQ"],
+          weekList: i["ZCBH"].toString(),
+          classroom: i["JASMC"],
         );
+
+        bool flag = true;
+        for (var i in timeArrangement) {
+          print("${i.index} ${i.day} ${i.classroom} ${i.start} ${i.stop} ");
+
+          if (i.index == toAdd.index &&
+              i.day == toAdd.day &&
+              i.weekList == toAdd.weekList &&
+              i.classroom == toAdd.classroom) {
+            print("${i.stop} ${toAdd.start}");
+            if (i.stop + 1 == toAdd.start) {
+              flag = false;
+              i.stop = toAdd.start;
+            } else if (i.stop - 1 == toAdd.start) {
+              flag = false;
+              i.start = toAdd.start;
+            }
+          }
+        }
+        if (flag) {
+          timeArrangement.add(toAdd);
+        }
+
         if (i["ZCBH"].toString().length > semesterLength) {
           semesterLength = i["ZCBH"].toString().length;
         }
