@@ -12,7 +12,7 @@ if you want to use.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:watermeter_postgraduate/model/user.dart';
+import 'package:watermeter_postgraduate/repository/preference.dart';
 
 class ChangeSwiftDialog extends StatelessWidget {
   final TextEditingController _getNumberController =

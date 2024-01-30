@@ -1,46 +1,96 @@
-/*
-IDS login class.
-Copyright 2022 SuperBart
+/// Copyright 2024 BenderBlog Rodriguez and Contributors
+///
+/// Licensed under the Apache License, Version 2.0 (the "License");
+/// you may not use this file except in compliance with the License.
+/// You may obtain a copy of the License at
+///
+///     http://www.apache.org/licenses/LICENSE-2.0
+///
+/// Unless required by applicable law or agreed to in writing, software
+/// distributed under the License is distributed on an "AS IS" BASIS,
+/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+/// See the License for the specific language governing permissions and
+/// limitations under the License.
 
-This Source Code Form is subject to the terms of the Mozilla Public
-License, v. 2.0. If a copy of the MPL was not distributed with this
-file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// IDS (统一认证服务) login class.
+// Thanks xidian-script and libxdauth!
 
-Please refer to ADDITIONAL TERMS APPLIED TO watermeter_postgraduate SOURCE CODE
-if you want to use.
-*/
-
+import 'dart:io';
 import 'dart:convert';
 import 'dart:developer' as developer;
-import 'package:beautiful_soup_dart/beautiful_soup.dart';
+
 import 'package:dio/dio.dart';
-import 'package:encrypt/encrypt.dart';
-import 'package:watermeter_postgraduate/repository/general.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
+import 'package:beautiful_soup_dart/beautiful_soup.dart';
 
-/// Get base64 encoded data. Which is aes encrypted [toEnc] encoded string using [key].
-/// Padding part is copied from libxduauth's idea.
-String aesEncrypt(String toEnc, String key) {
-  dynamic k = Key.fromUtf8(key);
-  var crypt = AES(k, mode: AESMode.cbc, padding: null);
+import 'package:watermeter_postgraduate/repository/network_session.dart';
+import 'package:watermeter_postgraduate/repository/preference.dart';
 
-  /// Start padding
-  int blockSize = 16;
-  List<int> dataToPad = [];
-  dataToPad.addAll(utf8.encode(
-      "xidianscriptsxduxidianscriptsxduxidianscriptsxduxidianscriptsxdu$toEnc"));
-  int paddingLength = blockSize - dataToPad.length % blockSize;
-  for (var i = 0; i < paddingLength; ++i) {
-    dataToPad.add(paddingLength);
-  }
-  String readyToEnc = utf8.decode(dataToPad);
+enum IDSLoginState {
+  none,
+  requesting,
+  success,
+  fail,
+  passwordWrong,
 
-  /// Start encrypt.
-  return Encrypter(crypt)
-      .encrypt(readyToEnc, iv: IV.fromUtf8('xidianscriptsxdu'))
-      .base64;
+  /// Indicate that the user will login via LoginWindow
+  manual,
 }
 
+IDSLoginState loginState = IDSLoginState.none;
+
+bool get offline =>
+    loginState != IDSLoginState.success && loginState != IDSLoginState.manual;
+
 class IDSSession extends NetworkSession {
+  @override
+  Dio get dio => super.dio
+    ..interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          developer.log(
+            "Offline status: $offline",
+            name: "OfflineCheckInspector",
+          );
+          if (offline) {
+            handler.reject(
+              DioException.requestCancelled(
+                reason: "Offline mode, all ids function unuseable.",
+                requestOptions: options,
+              ),
+            );
+          } else {
+            handler.next(options);
+          }
+        },
+      ),
+    );
+
+  Dio get dioNoOfflineCheck => super.dio;
+
+  /// Get base64 encoded data. Which is aes encrypted [toEnc] encoded string using [key].
+  /// Padding part is libxduauth's idea.
+  String aesEncrypt(String toEnc, String key) {
+    dynamic k = encrypt.Key.fromUtf8(key);
+    var crypt = encrypt.AES(k, mode: encrypt.AESMode.cbc, padding: null);
+
+    /// Start padding
+    int blockSize = 16;
+    List<int> dataToPad = [];
+    dataToPad.addAll(utf8.encode(
+        "xidianscriptsxduxidianscriptsxduxidianscriptsxduxidianscriptsxdu$toEnc"));
+    int paddingLength = blockSize - dataToPad.length % blockSize;
+    for (var i = 0; i < paddingLength; ++i) {
+      dataToPad.add(paddingLength);
+    }
+    String readyToEnc = utf8.decode(dataToPad);
+
+    /// Start encrypt.
+    return encrypt.Encrypter(crypt)
+        .encrypt(readyToEnc, iv: encrypt.IV.fromUtf8('xidianscriptsxdu'))
+        .base64;
+  }
+
   static const _header = [
     // "username",
     // "password",
@@ -52,60 +102,79 @@ class IDSSession extends NetworkSession {
     "execution",
   ];
 
-  Future<void> isLoggedIn() async {
-    var response =
-        await dio.post("http://ids.xidian.edu.cn/authserver/index.do",
-            options: Options(
-              followRedirects: false,
-              validateStatus: (status) {
-                return status! < 500;
-              },
-            ));
-    developer.log(
-        "isLoggedIn result: ${response.statusCode == 302 ? true : false}",
-        name: "ids isLoggedIn");
-    if (response.statusCode == 302) {
-      throw "没有登录";
+  String _parsePasswordWrongMsg(String html) {
+    var page = BeautifulSoup(html);
+    var form = page.findAll("span", attrs: {
+      "id": "showErrorTip",
+    })[0];
+    var msg = form.children[0].string;
+
+    // Simplify the error message because there is no '找回密码' button here XD.
+    // "用户名或密码有误，用户名为工号/学号，如果确认用户名无误，请点‘找回密码’自助重置密码。"
+    if (msg.contains(RegExp(r"(用户名|密码).*误", unicode: true, dotAll: true))) {
+      msg = "用户名或密码有误。";
+    }
+    return msg;
+  }
+
+  Future<String> checkAndLogin({
+    required String target,
+    Future<void> Function(String)? sliderCaptcha,
+  }) async {
+    developer.log("Ready to get $target.", name: "ids checkAndLogin");
+    var data = await dioNoOfflineCheck.get(
+      "https://ids.xidian.edu.cn/authserver/login",
+      queryParameters: {'service': target},
+    );
+    developer.log("Received: $data.", name: "ids checkAndLogin");
+    if (data.statusCode == 401) {
+      throw PasswordWrongException(msg: _parsePasswordWrongMsg(data.data));
+    } else if (data.statusCode == 301 || data.statusCode == 302) {
+      /// Post login progress, due to something wrong, return the location here...
+      return data.headers[HttpHeaders.locationHeader]![0];
+    } else {
+      return await login(
+        username: user["idsAccount"]!,
+        password: user["idsPassword"]!,
+        sliderCaptcha: sliderCaptcha,
+        target: target,
+      );
     }
   }
 
-  Future<void> login({
+  Future<String> login({
+    String? target,
     required String username,
     required String password,
-    required String target,
     bool forceReLogin = false,
     void Function(int, String)? onResponse,
+    Future<void> Function(String)? sliderCaptcha,
   }) async {
     /// Get the login webpage.
     if (onResponse != null) {
       onResponse(10, "准备获取登录网页");
       developer.log("Ready to get the login webpage.", name: "ids login");
     }
-    var response = await dio.get(
-      "http://ids.xidian.edu.cn/authserver/login",
-      queryParameters: {'service': target, 'type': 'userNameLogin'},
-    ).then((value) => value.data);
+    var response = await dioNoOfflineCheck
+        .get(
+          "https://ids.xidian.edu.cn/authserver/login",
+          queryParameters: target != null ? {'service': target} : null,
+        )
+        .then((value) => value.data);
 
     /// Start getting data from webpage.
     var page = BeautifulSoup(response);
     var form = page.findAll("input", attrs: {"type": "hidden"});
 
     /// Check whether it need CAPTCHA or not:-P
-    if (onResponse != null) {
-      onResponse(20, "查询是否需要验证码");
+    /// Used in two captcha.
+    String cookieStr = "";
+    var cookie = await cookieJar
+        .loadForRequest(Uri.parse("https://ids.xidian.edu.cn/authserver"));
+    for (var i in cookie) {
+      cookieStr += "${i.name}=${i.value}; ";
     }
-    String checkCAPTCHA = await dio.get(
-      "http://ids.xidian.edu.cn/authserver/checkNeedCaptcha.htl",
-      queryParameters: {
-        'username': username,
-        '_': DateTime.now().millisecondsSinceEpoch.toString()
-      },
-    ).then((value) => value.data);
-    bool isNeed = checkCAPTCHA.contains("true");
-    developer.log("isNeedCAPTCHA: $isNeed.", name: "ids login");
-    if (isNeed) {
-      throw "需要验证码，请去浏览器登陆";
-    }
+    developer.log("cookie: $cookieStr.", name: "ids login");
 
     /// Get AES encrypt key. There must be.
     if (onResponse != null) {
@@ -133,48 +202,61 @@ class IDSSession extends NetworkSession {
           (element) => element["name"] == i || element.id == i)["value"]!;
     }
 
+    if (onResponse != null) {
+      onResponse(45, "滑块验证");
+    }
+
+    await dioNoOfflineCheck.get(
+      "https://ids.xidian.edu.cn/authserver/common/openSliderCaptcha.htl",
+      queryParameters: {'_': DateTime.now().millisecondsSinceEpoch.toString()},
+    );
+
+    await sliderCaptcha!(cookieStr);
+
     /// Post login request.
     if (onResponse != null) {
       onResponse(50, "准备登录");
     }
-    var data = await (dio).post(
-      "http://ids.xidian.edu.cn/authserver/login",
-      queryParameters: {'service': target},
-      options: Options(
-        followRedirects: false,
-        validateStatus: (status) {
-          return status! < 500;
-        },
-      ),
-      data: head,
-    );
-    developer.log("Received: ${data.headers}.", name: "ids login");
-    if (data.statusCode == 401) {
-      throw "用户名或密码错误";
-    } else if (data.statusCode == 301 || data.statusCode == 302) {
-      /// Post login progress.
-      if (onResponse != null) {
-        onResponse(80, "登录后处理");
-      }
-      developer.log("Post deal...", name: "ids login");
-      var whatever = await dio.get(
-        data.headers['location']![0],
+    try {
+      var data = await dioNoOfflineCheck.post(
+        "https://ids.xidian.edu.cn/authserver/login",
+        data: head,
         options: Options(
-          followRedirects: false,
-          validateStatus: (status) {
-            return status! < 500;
-          },
+          validateStatus: (status) =>
+              status != null && status >= 200 && status < 400,
         ),
       );
-      developer.log(whatever.headers.toString(), name: "ids login");
-      if (whatever.data.contains("验证码错误")) {
-        throw "不知为啥还是说让输验证码";
+      if (data.statusCode == 301 || data.statusCode == 302) {
+        /// Post login progress.
+        if (onResponse != null) {
+          onResponse(80, "登录后处理");
+        }
+        return data.headers[HttpHeaders.locationHeader]![0];
+      } else {
+        throw LoginFailedException(msg: "登录失败，响应状态码：${data.statusCode}。");
       }
-      return;
-    } else {
-      throw "登陆失败了，原因不明\n返回值代码：${data.statusCode}\n";
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        throw PasswordWrongException(
+            msg: _parsePasswordWrongMsg(e.response!.data));
+      }
+      rethrow;
     }
   }
 }
 
-var ids = IDSSession();
+class NeedCaptchaException implements Exception {}
+
+class PasswordWrongException implements Exception {
+  final String msg;
+  const PasswordWrongException({required this.msg});
+  @override
+  String toString() => msg;
+}
+
+class LoginFailedException implements Exception {
+  final String msg;
+  const LoginFailedException({required this.msg});
+  @override
+  String toString() => msg;
+}

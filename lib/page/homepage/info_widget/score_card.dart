@@ -1,36 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:watermeter_postgraduate/page/score/score.dart';
-import 'package:watermeter_postgraduate/controller/score_controller.dart';
+import 'package:watermeter_postgraduate/repository/xidian_ids/ids_session.dart';
 
 class ScoreCard extends StatelessWidget {
-  ScoreCard({super.key});
-
-  final ScoreController c = ScoreController();
+  const ScoreCard({super.key});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        if (c.error == null) {
-          Navigator.of(context)
-              .push(MaterialPageRoute(builder: (context) => ScoreWindow()));
-        } else if (c.error == "正在加载") {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            behavior: SnackBarBehavior.floating,
-            content: Text(
-              "请稍候 正在获取成绩信息",
-            ),
-          ));
+        if (offline) {
+          Fluttertoast.showToast(msg: "脱机模式下，一站式相关功能全部禁止使用");
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            behavior: SnackBarBehavior.floating,
-            content: Text("遇到错误，${c.error}"),
-          ));
-        }
-      },
-      onLongPress: () {
-        if (c.isGet) {
-          c.get();
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const ScoreWindow(),
+            ),
+          );
         }
       },
       child: Card(

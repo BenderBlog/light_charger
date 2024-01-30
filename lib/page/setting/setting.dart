@@ -17,7 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:watermeter_postgraduate/model/user.dart';
+import 'package:watermeter_postgraduate/repository/preference.dart';
 import 'package:watermeter_postgraduate/page/setting/subwindow/change_swift_dialog.dart';
 
 class SettingWindow extends StatefulWidget {

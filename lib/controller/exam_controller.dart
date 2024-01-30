@@ -1,55 +1,107 @@
+/// Copyright 2024 BenderBlog Rodriguez and Contributors
+///
+/// Licensed under the Apache License, Version 2.0 (the "License");
+/// you may not use this file except in compliance with the License.
+/// You may obtain a copy of the License at
+///
+///     http://www.apache.org/licenses/LICENSE-2.0
+///
+/// Unless required by applicable law or agreed to in writing, software
+/// distributed under the License is distributed on an "AS IS" BASIS,
+/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+/// See the License for the specific language governing permissions and
+/// limitations under the License.
+
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
+import 'package:jiffy/jiffy.dart';
+import 'package:watermeter_postgraduate/repository/network_session.dart';
 import 'dart:developer' as developer;
-import 'package:watermeter_postgraduate/model/user.dart';
 import 'package:watermeter_postgraduate/model/xidian_ids/exam.dart';
 import 'package:watermeter_postgraduate/repository/xidian_ids/exam_session.dart';
 
+enum ExamStatus {
+  cache,
+  fetching,
+  fetched,
+  error,
+  none,
+}
+
 class ExamController extends GetxController {
-  bool isGet = false;
-  String? error;
+  static const examDataCacheName = "exam.json";
+
+  ExamStatus status = ExamStatus.none;
+  String error = "";
   List<String> semesters = [];
   late List<Subject> subjects;
-  int dropdownValue = 0;
+  late File file;
+  Jiffy now = Jiffy.now();
+
+  List<Subject> get isFinished {
+    List<Subject> isFinished = List.from(subjects);
+    isFinished.removeWhere(
+      (element) => element.startTime.isAfter(now),
+    );
+    return isFinished;
+  }
+
+  List<Subject> get isNotFinished {
+    List<Subject> isNotFinished = List.from(subjects);
+    isNotFinished.removeWhere(
+      (element) => element.startTime.isSameOrBefore(now),
+    );
+    return isNotFinished
+      ..sort(
+        (a, b) =>
+            a.startTime.microsecondsSinceEpoch -
+            b.startTime.microsecondsSinceEpoch,
+      );
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+    developer.log(
+      "Path at ${supportPath.path}.",
+      name: "[ExamController][onInit]",
+    );
+    file = File("${supportPath.path}/$examDataCacheName");
+    bool isExist = file.existsSync();
+
+    if (isExist) {
+      developer.log(
+        "Init from cache.",
+        name: "[ExamController][onInit]",
+      );
+      subjects = jsonDecode(file.readAsStringSync());
+      status = ExamStatus.cache;
+    } else {
+      subjects = [];
+    }
+  }
 
   @override
   void onReady() async {
-    get();
-    update();
+    super.onReady();
+    get().then((value) => update());
   }
 
-  Future<void> get({String? semesterStr}) async {
-    isGet = false;
-    error = null;
+  Future<void> get() async {
+    ExamStatus previous = status;
+    developer.log(
+      "Fetching data from Internet.",
+      name: "[ExamController][get]",
+    );
     try {
-      var qResult = await ExamFile().get(semester: semesterStr);
-      int grade = int.parse("20${user["idsAccount"]!.substring(0, 2)}");
-
-      if (semesterStr == null && semesters.isEmpty) {
-        for (var i in qResult["semester"]) {
-          int start = int.parse(i["DM"].toString().substring(0, 4));
-          if (start >= grade && start < grade + 4) {
-            semesters.add(i["DM"]);
-          }
-        }
-      }
-
-      subjects = [];
-      if (qResult["subjects"] != null) {
-        for (var i in qResult["subjects"]) {
-          subjects.add(Subject(
-            subject: i["KCMC"],
-            type: i["KSLXDM_DISPLAY"],
-            time: i["KSSJMS"],
-            place: i["JASMC"],
-            // 考场编号
-            roomId: i["KCBH"],
-          ));
-        }
-      }
-
-      isGet = true;
-      error = null;
+      now = Jiffy.now();
+      status = ExamStatus.fetching;
+      subjects = await ExamFile().get();
+      status = ExamStatus.fetched;
+      error = "";
     } on DioException catch (e, s) {
       developer.log(
         "Network exception: ${e.message}\nStack: $s",
@@ -62,6 +114,18 @@ class ExamController extends GetxController {
         name: "ScoreController",
       );
       error = "未知错误，感兴趣的话，请接到电脑 adb 查看日志。$e";
+    } finally {
+      if (status == ExamStatus.fetched) {
+        developer.log(
+          "Store to cache.",
+          name: "[ExamController][get]",
+        );
+        file.writeAsStringSync(jsonEncode(subjects));
+      } else if (previous == ExamStatus.cache) {
+        status = ExamStatus.cache;
+      } else {
+        status = ExamStatus.error;
+      }
     }
     update();
   }

@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:watermeter_postgraduate/controller/classtable_controller.dart';
 import 'package:watermeter_postgraduate/controller/exam_controller.dart';
-import 'package:watermeter_postgraduate/controller/score_controller.dart';
 import 'package:watermeter_postgraduate/page/clipper.dart';
 import 'package:watermeter_postgraduate/page/homepage/info_widget/classtable_card.dart';
 import 'package:watermeter_postgraduate/page/homepage/info_widget/exam_card.dart';
@@ -11,7 +10,6 @@ import 'package:watermeter_postgraduate/page/homepage/info_widget/score_card.dar
 import 'package:watermeter_postgraduate/page/homepage/refresh.dart';
 
 class PhoneMainPage extends StatelessWidget {
-  final controller = Get.put(ScoreController());
   final classTableController = Get.put(ClassTableController());
   final examController = Get.put(ExamController());
 

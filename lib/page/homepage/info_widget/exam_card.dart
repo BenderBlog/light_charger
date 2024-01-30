@@ -1,7 +1,11 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:watermeter_postgraduate/controller/exam_controller.dart';
-import 'package:watermeter_postgraduate/page/exam/exam.dart';
+import 'package:watermeter_postgraduate/page/exam/exam_info_window.dart';
+import 'package:watermeter_postgraduate/repository/xidian_ids/ids_session.dart';
 
 class ExamCard extends StatelessWidget {
   const ExamCard({super.key});
@@ -11,21 +15,24 @@ class ExamCard extends StatelessWidget {
     return GetBuilder<ExamController>(
       builder: (c) => GestureDetector(
         onTap: () async {
-          if (c.isGet == true) {
+          if (offline) {
+            Fluttertoast.showToast(msg: "脱机模式下，一站式相关功能全部禁止使用");
+          } else if (c.status == ExamStatus.cache ||
+              c.status == ExamStatus.fetched) {
             Navigator.of(context).push(MaterialPageRoute(
                 builder: (context) => const ExamInfoWindow()));
-          } else if (c.error == null) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              behavior: SnackBarBehavior.floating,
-              content: Text(
-                "请稍候 正在获取考试信息",
-              ),
-            ));
+          } else if (c.status != ExamStatus.error) {
+            Fluttertoast.showToast(msg: "请稍候，正在获取考试信息");
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              behavior: SnackBarBehavior.floating,
-              content: Text("遇到错误：${c.error!}"),
-            ));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(c.error.substring(
+                  0,
+                  min(c.error.length, 120),
+                )),
+              ),
+            );
+            Fluttertoast.showToast(msg: "遇到错误，请联系开发者");
           }
         },
         child: Card(

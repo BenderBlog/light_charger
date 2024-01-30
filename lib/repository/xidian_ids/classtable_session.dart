@@ -1,27 +1,84 @@
-/*
-The class table window source.
-Copyright 2022 SuperBart
-
-This Source Code Form is subject to the terms of the Mozilla Public
-License, v. 2.0. If a copy of the MPL was not distributed with this
-file, You can obtain one at https://mozilla.org/MPL/2.0/.
-
-Please refer to ADDITIONAL TERMS APPLIED TO watermeter_postgraduate SOURCE CODE
-if you want to use.
-
-Thanks xidian-script and libxdauth!
-*/
+/// Copyright 2024 BenderBlog Rodriguez and Contributors
+///
+/// Licensed under the Apache License, Version 2.0 (the "License");
+/// you may not use this file except in compliance with the License.
+/// You may obtain a copy of the License at
+///
+///     http://www.apache.org/licenses/LICENSE-2.0
+///
+/// Unless required by applicable law or agreed to in writing, software
+/// distributed under the License is distributed on an "AS IS" BASIS,
+/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+/// See the License for the specific language governing permissions and
+/// limitations under the License.
 
 import 'dart:io';
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:jiffy/jiffy.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:watermeter_postgraduate/model/user.dart';
+import 'package:watermeter_postgraduate/model/xidian_ids/classtable.dart';
+import 'package:watermeter_postgraduate/repository/preference.dart';
 import 'package:watermeter_postgraduate/repository/xidian_ids/yjspt_session.dart';
 
 class ClassTableFile extends YjsptSession {
-  Future<Map<String, dynamic>> getFromWeb() async {
+  static const schoolClassName = "ClassTable.json";
+  static const userDefinedClassName = "UserClass.json";
+
+  ClassTableData simplifyData(Map<String, dynamic> qResult) {
+    ClassTableData toReturn = ClassTableData();
+
+    toReturn.semesterCode = qResult["semesterCode"];
+    toReturn.termStartDay = qResult["termStartDay"];
+
+    developer.log(
+      "${toReturn.semesterCode} ${toReturn.termStartDay}",
+      name: "[getClasstable][simplifyData]",
+    );
+
+    for (var i in qResult["rows"]) {
+      var toDeal = ClassDetail(
+        name: i["KCMC"],
+        code: i["KCDM"],
+      );
+      if (!toReturn.classDetail.contains(toDeal)) {
+        toReturn.classDetail.add(toDeal);
+      }
+      toReturn.timeArrangement.add(
+        TimeArrangement(
+          source: Source.school,
+          index: toReturn.classDetail.indexOf(toDeal),
+          start: int.parse(i["KSJCDM"]),
+          teacher: i["JSXM"],
+          stop: int.parse(i["JSJCDM"]),
+          day: int.parse(i["XQ"]),
+          weekList: List<bool>.generate(
+            i["ZCBH"].toString().length,
+            (index) => i["ZCBH"].toString()[index] == "1",
+          ),
+          classroom: i["JASMC"],
+        ),
+      );
+      if (i["ZCBH"].toString().length > toReturn.semesterLength) {
+        toReturn.semesterLength = i["ZCBH"].toString().length;
+      }
+    }
+
+    // Deal with the not arranged data.
+    if (qResult["notArranged"] != null) {
+      for (var i in qResult["notArranged"]) {
+        toReturn.notArranged.add(NotArrangementClassDetail(
+          name: i["KCMC"],
+          teacher: i["JSXM"],
+          code: i["KCDM"],
+        ));
+      }
+    }
+
+    return toReturn;
+  }
+
+  Future<ClassTableData> getFromWeb() async {
     DateTime now = DateTime.now();
     Map<String, dynamic> qResult = {};
     developer.log("Login the system.", name: "Yjspt getClasstable");
@@ -80,10 +137,10 @@ class ClassTableFile extends YjsptSession {
     developer.log("Caching...", name: "Yjspt getClasstable");
     qResult["semesterCode"] = semesterCode;
     qResult["termStartDay"] = termStartDay;
-    return qResult;
+    return simplifyData(qResult);
   }
 
-  Future<Map<String, dynamic>> get({
+  Future<ClassTableData> get({
     bool isForce = false,
   }) async {
     developer.log("Check whether the classtable has fetched.",

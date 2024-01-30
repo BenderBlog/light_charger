@@ -1,3 +1,7 @@
 {
-  "mesonbuild.configureOnOpen": false
+  "mesonbuild.configureOnOpen": false,
+  "licenser.author": "BenderBlog Rodriguez and contributors",
+  "licenser.license": "AL2",
+  "licenser.projectName": "Light Charger",
+  "licenser.useSingleLineStyle": false
 }

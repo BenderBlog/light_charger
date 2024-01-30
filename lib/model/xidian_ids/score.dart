@@ -1,14 +1,16 @@
-/*
-The score model.
-Copyright 2022 SuperBart
-
-This Source Code Form is subject to the terms of the Mozilla Public
-License, v. 2.0. If a copy of the MPL was not distributed with this
-file, You can obtain one at https://mozilla.org/MPL/2.0/.
-
-Please refer to ADDITIONAL TERMS APPLIED TO watermeter_postgraduate SOURCE CODE
-if you want to use.
-*/
+/// Copyright 2024 BenderBlog Rodriguez and Contributors
+///
+/// Licensed under the Apache License, Version 2.0 (the "License");
+/// you may not use this file except in compliance with the License.
+/// You may obtain a copy of the License at
+///
+///     http://www.apache.org/licenses/LICENSE-2.0
+///
+/// Unless required by applicable law or agreed to in writing, software
+/// distributed under the License is distributed on an "AS IS" BASIS,
+/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+/// See the License for the specific language governing permissions and
+/// limitations under the License.
 
 class Score {
   int mark; // 编号，用于某种计算，从 0 开始
@@ -19,9 +21,6 @@ class Score {
   String status; // 修读状态
   int how; // 评分方式
   String? level; // 等级
-  String? classID; // 教学班序列号
-  String? scoreStructure; //成绩构成
-  String? scoreDetail; //分项成绩
   int isPassed; //是否及格
   bool? isNoNeedStudy; //是否免修
   Score({
@@ -33,19 +32,7 @@ class Score {
     required this.status,
     required this.isPassed,
     required this.how,
-    this.level,
-    this.classID,
-    this.scoreStructure,
-    this.scoreDetail,
     this.isNoNeedStudy,
+    this.level,
   });
 }
-
-List<String> toBeCounted = [
-  "政治理论课",
-  "英语公共课",
-  "数学课",
-  "专业核心课",
-  "专业基础课",
-  "工程伦理",
-];

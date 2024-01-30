@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:watermeter_postgraduate/controller/classtable_controller.dart';
 import 'package:watermeter_postgraduate/controller/exam_controller.dart';
-import 'package:watermeter_postgraduate/controller/score_controller.dart';
 import 'package:watermeter_postgraduate/page/homepage/info_widget/classtable_card.dart';
 import 'package:watermeter_postgraduate/page/homepage/info_widget/exam_card.dart';
 import 'package:watermeter_postgraduate/page/homepage/info_widget/score_card.dart';
@@ -11,7 +10,6 @@ import 'package:watermeter_postgraduate/page/homepage/refresh.dart';
 class PadMainPage extends StatelessWidget {
   final classTableController = Get.put(ClassTableController());
   final examController = Get.put(ExamController());
-  final scoreController = Get.put(ScoreController());
 
   PadMainPage({super.key});
 
