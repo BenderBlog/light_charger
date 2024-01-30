@@ -31,8 +31,8 @@ Future<void> _comboLogin({
 
   try {
     await IDSSession().checkAndLogin(
-      target: "https://ehall.xidian.edu.cn/login?service="
-          "https://ehall.xidian.edu.cn/new/index.html",
+      target: "https://yjspt.xidian.edu.cn"
+          "/gsapp/sys/yjsemaphome/portal/index.do",
       sliderCaptcha: sliderCaptcha,
     );
     loginState = IDSLoginState.success;

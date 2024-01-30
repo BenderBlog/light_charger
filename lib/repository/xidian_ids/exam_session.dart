@@ -33,7 +33,7 @@ class ExamFile extends YjsptSession {
           "https://yjspt.xidian.edu.cn/gsapp/sys/wdksapp/modules/ksxxck/getXnxqList.do",
         )
         .then(
-          (value) => value.data["datas"]["semester"][0]["DM"],
+          (value) => value.data["datas"][0]["DM"],
         );
 
     /// wdksap 我的考试安排
@@ -53,14 +53,15 @@ class ExamFile extends YjsptSession {
 
     List<Subject> toReturn = [];
 
-    if (data["rows"] != null) {
+    if (data != null) {
       for (var i in data) {
         toReturn.add(Subject(
           subject: i["KCMC"],
-          typeStr: i["KSLXDM_DISPLAY"],
-          time: i["KSSJMS"],
+          type: i["KSLXDM_DISPLAY"],
+          timeStr: i["KSSJMS"],
+          startTimeStr: i["KSKSSJ"],
+          stopTimeStr: i["KSJSSJ"],
           place: i["JASMC"],
-          // 考场编号
           roomId: i["KCBH"],
         ));
       }

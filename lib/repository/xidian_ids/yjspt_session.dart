@@ -60,16 +60,15 @@ class YjsptSession extends IDSSession {
     void Function(int, String)? onResponse,
     Future<void> Function(String)? sliderCaptcha,
   }) async {
-    var response = await dioYjspt.get(base);
-    developer.log(
-      "Return code: ${response.statusCode}.",
-      name: "Yjspt login",
-    );
-    bool isNeedLogin = (response.statusCode ?? 302) != 200;
-    if (response.headers[HttpHeaders.locationHeader] != null) {
-      await dioYjspt.get(response.headers[HttpHeaders.locationHeader]![0]);
-    }
-    if (isNeedLogin || forceReLogin == true || user["roleId"] == null) {
+    if (forceReLogin == true || user["roleId"] == null) {
+      var response = await dioYjspt.get(base);
+      developer.log(
+        "Return code: ${response.statusCode}.",
+        name: "Yjspt login",
+      );
+      if (response.headers[HttpHeaders.locationHeader] != null) {
+        await dioYjspt.get(response.headers[HttpHeaders.locationHeader]![0]);
+      }
       developer.log(
         "Ready to login. Is force relogin: $forceReLogin.",
         name: "Yjspt login",
@@ -84,7 +83,7 @@ class YjsptSession extends IDSSession {
         "Received location: $location",
         name: "Yjspt login",
       );
-      var response = await dioYjspt.get(location);
+      response = await dioYjspt.get(location);
       while (response.headers[HttpHeaders.locationHeader] != null) {
         location = response.headers[HttpHeaders.locationHeader]![0];
         developer.log(

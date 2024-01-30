@@ -19,19 +19,33 @@ part 'exam.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class Subject {
+  /// 课程名称
   String subject;
-  String typeStr;
-  String? teacher;
-  String time;
+
+  /// 考试类型
+  String type;
+
+  /// 考试时间
+  String timeStr;
+
+  /// 考试开始时间
+  String startTimeStr;
+
+  /// 考试结束时间
+  String stopTimeStr;
+
+  /// 考试地点
   String place;
+
+  /// 考场编号
   String roomId;
 
   static RegExp timeRegExp = RegExp(
-    r'^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2}) (?<hour>\d{2})(::?)(?<minute>\d{2})-(?<stopHour>\d{2})(::?)(?<stopMinute>\d{2})',
+    r'^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2}) (?<hour>\d{2})(::?)(?<minute>\d{2})',
   );
 
   Jiffy get startTime {
-    RegExpMatch? match = timeRegExp.firstMatch(time);
+    RegExpMatch? match = timeRegExp.firstMatch(startTimeStr);
     if (match == null) throw NotImplementedException();
 
     return Jiffy.parseFromDateTime(DateTime(
@@ -44,7 +58,7 @@ class Subject {
   }
 
   Jiffy get stopTime {
-    RegExpMatch? match = timeRegExp.firstMatch(time);
+    RegExpMatch? match = timeRegExp.firstMatch(stopTimeStr);
     if (match == null) throw NotImplementedException();
 
     return Jiffy.parseFromDateTime(DateTime(
@@ -56,21 +70,14 @@ class Subject {
     ));
   }
 
-  String get type {
-    if (typeStr.contains("期末考试")) return "期末考试";
-    if (typeStr.contains("期中考试")) return "期中考试";
-    if (typeStr.contains("结课考试")) return "结课考试";
-    if (typeStr.contains("入学")) return "入学考试";
-    return typeStr;
-  }
-
   Subject({
     required this.subject,
-    required this.typeStr,
-    required this.time,
+    required this.type,
+    required this.timeStr,
+    required this.startTimeStr,
+    required this.stopTimeStr,
     required this.place,
     required this.roomId,
-    this.teacher,
   });
 
   factory Subject.fromJson(Map<String, dynamic> json) =>

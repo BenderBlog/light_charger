@@ -189,11 +189,11 @@ class _LoginWindowState extends State<LoginWindow> {
       );
       if (!mounted) return;
       if (isGood == true) {
-        preference.addUser(
+        await preference.addUser(
           "idsAccount",
           _idsAccountController.text,
         );
-        preference.addUser(
+        await preference.addUser(
           "idsPassword",
           _idsPasswordController.text,
         );

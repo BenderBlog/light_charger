@@ -8,18 +8,20 @@ part of 'exam.dart';
 
 Subject _$SubjectFromJson(Map<String, dynamic> json) => Subject(
       subject: json['subject'] as String,
-      typeStr: json['typeStr'] as String,
-      time: json['time'] as String,
+      type: json['type'] as String,
+      timeStr: json['timeStr'] as String,
+      startTimeStr: json['startTimeStr'] as String,
+      stopTimeStr: json['stopTimeStr'] as String,
       place: json['place'] as String,
       roomId: json['roomId'] as String,
-      teacher: json['teacher'] as String?,
     );
 
 Map<String, dynamic> _$SubjectToJson(Subject instance) => <String, dynamic>{
       'subject': instance.subject,
-      'typeStr': instance.typeStr,
-      'teacher': instance.teacher,
-      'time': instance.time,
+      'type': instance.type,
+      'timeStr': instance.timeStr,
+      'startTimeStr': instance.startTimeStr,
+      'stopTimeStr': instance.stopTimeStr,
       'place': instance.place,
       'roomId': instance.roomId,
     };

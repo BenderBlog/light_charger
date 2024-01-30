@@ -38,7 +38,7 @@ class ReXCard extends StatelessWidget {
       children: [
         DefaultTextStyle.merge(
           style: TextStyle(
-            color: Theme.of(context).colorScheme.onPrimaryContainer,
+            color: Theme.of(context).colorScheme.onPrimary,
             fontSize: 0.875 * _rem,
           ),
           child: Row(
@@ -83,10 +83,7 @@ class ReXCard extends StatelessWidget {
               bottom: 0.5 * _rem,
             )
             .backgroundColor(
-              Theme.of(context)
-                  .colorScheme
-                  .primaryContainer
-                  .withOpacity(opacity),
+              Theme.of(context).colorScheme.primary.withOpacity(opacity),
             ),
         DefaultTextStyle.merge(
           style: TextStyle(

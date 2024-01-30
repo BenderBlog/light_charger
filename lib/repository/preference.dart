@@ -38,7 +38,7 @@ void initUser() {
   user["name"] = prefs.getString("name");
   if (user["idsAccount"] == null ||
       user["idsPassword"] == null ||
-      user["name"] == null ||
+      //user["name"] == null ||
       user["roleId"] == null) {
     throw NotLoginException();
   }
@@ -49,10 +49,10 @@ void initUser() {
   user["currentStartDay"] = prefs.getString("currentStartDay");
 }
 
-void addUser(String key, String value) {
+Future<void> addUser(String key, String value) async {
   assert(user.keys.contains(key), "user map does not contains key $key");
   user[key] = value;
-  prefs.setString(key, value);
+  await prefs.setString(key, value);
 }
 
 class NotLoginException implements Exception {}

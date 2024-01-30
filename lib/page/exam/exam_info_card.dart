@@ -27,7 +27,7 @@ class ExamInfoCard extends StatelessWidget {
               children: [
                 informationWithIcon(
                   Icons.access_time_filled_rounded,
-                  toUse!.time,
+                  toUse!.timeStr,
                   context,
                 ),
                 Flex(
@@ -39,8 +39,8 @@ class ExamInfoCard extends StatelessWidget {
                       context,
                     ).flexible(),
                     informationWithIcon(
-                      Icons.chair,
-                      toUse!.place,
+                      Icons.code,
+                      toUse!.roomId,
                       context,
                     ).flexible(),
                   ],
