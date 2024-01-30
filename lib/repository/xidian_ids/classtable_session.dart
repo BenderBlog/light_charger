@@ -83,11 +83,11 @@ class ClassTableFile extends YjsptSession {
     Map<String, dynamic> qResult = {};
     developer.log("Login the system.", name: "Yjspt getClasstable");
     String get = await useApp("wdkbapp");
-    await dio.post(get);
+    await dioYjspt.post(get);
 
     developer.log("Fetch the semester information.",
         name: "Yjspt getClasstable");
-    String semesterCode = await dio
+    String semesterCode = await dioYjspt
         .post(
           "https://yjspt.xidian.edu.cn/gsapp/sys/wdkbapp/modules/xskcb/kfdxnxqcx.do",
         )
@@ -98,7 +98,7 @@ class ClassTableFile extends YjsptSession {
 
     developer.log("Fetch the day the semester begin.",
         name: "Yjspt getClasstable");
-    var currentWeek = await dio.post(
+    var currentWeek = await dioYjspt.post(
       'https://yjspt.xidian.edu.cn/gsapp/sys/yjsemaphome/portal/queryRcap.do',
       data: {'day': Jiffy.parseFromDateTime(now).format(pattern: "yyyyMMdd")},
     ).then((value) => value.data);
@@ -126,7 +126,7 @@ class ClassTableFile extends YjsptSession {
         "Will get $semesterCode which start at $termStartDay, fetching...",
         name: "Yjspt getClasstable");
 
-    qResult = await dio.post(
+    qResult = await dioYjspt.post(
       'https://yjspt.xidian.edu.cn/gsapp/sys/wdkbapp/modules/xskcb/xspkjgcx.do',
       data: {'XNXQDM': semesterCode, "*order": "-ZCBH"},
     ).then((value) => value.data['datas']['xspkjgcx']);

@@ -30,10 +30,10 @@ class ScoreSession extends YjsptSession {
 
     developer.log("Ready to login the system.", name: "Yjspt getScore");
     var firstPost = await useApp("wdcjapp");
-    await dio.get(firstPost);
+    await dioYjspt.get(firstPost);
 
     developer.log("Getting the score data.", name: "Yjspt getScore");
-    var getData = await dio.post(
+    var getData = await dioYjspt.post(
       "https://yjspt.xidian.edu.cn/gsapp/sys/wdcjapp/modules/wdcj/xscjcx.do",
       data: {
         "querySetting": [],

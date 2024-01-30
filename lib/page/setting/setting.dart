@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:watermeter_postgraduate/repository/network_session.dart';
 import 'package:watermeter_postgraduate/repository/preference.dart';
 import 'package:watermeter_postgraduate/page/setting/subwindow/change_swift_dialog.dart';
 
@@ -52,6 +53,10 @@ class _SettingWindowState extends State<SettingWindow> {
           SettingsSection(
             title: const Text('用户相关'),
             tiles: <SettingsTile>[
+              SettingsTile.navigation(
+                title: const Text('查看网络拦截器'),
+                onPressed: (context) => alice.showInspector(),
+              ),
               SettingsTile.navigation(
                   title: const Text('用户信息'), value: Text("${user["name"]}")),
               SettingsTile.navigation(

@@ -40,7 +40,7 @@ void initUser() {
       user["idsPassword"] == null ||
       user["name"] == null ||
       user["roleId"] == null) {
-    throw NotLoginException;
+    throw NotLoginException();
   }
   user["swift"] = prefs.getString("swift");
   user["decorated"] = prefs.getString("decorated");

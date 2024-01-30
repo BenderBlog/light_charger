@@ -22,13 +22,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:watermeter_postgraduate/page/home.dart';
 import 'package:watermeter_postgraduate/page/login/login_window.dart';
-import 'package:watermeter_postgraduate/repository/network_session.dart'
-    as repo_general;
-import 'package:watermeter_postgraduate/repository/preference.dart'
-    as preference;
+import 'package:watermeter_postgraduate/repository/network_session.dart';
 import 'package:watermeter_postgraduate/repository/preference.dart';
+import 'package:watermeter_postgraduate/repository/xidian_ids/ids_session.dart';
 
 void main() async {
+  // Make sure the library is initialized.
+  WidgetsFlutterBinding.ensureInitialized();
+
   developer.log(
     "Light Charger by BenderBlog Rodriguez and Contributors.",
   );
@@ -55,8 +56,8 @@ void main() async {
   }
 
   // Loading cookiejar.
-  repo_general.supportPath = await getApplicationSupportDirectory();
-  preference.prefs = await SharedPreferences.getInstance();
+  supportPath = await getApplicationSupportDirectory();
+  prefs = await SharedPreferences.getInstance();
 
   // Have user registered?
   bool isFirst = false;
@@ -72,20 +73,36 @@ void main() async {
   runApp(MyApp(isFirst: isFirst));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final bool isFirst;
 
-  const MyApp({Key? key, required this.isFirst}) : super(key: key);
+  const MyApp({super.key, required this.isFirst});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.isFirst) {
+      loginState = IDSLoginState.manual;
+      IDSSession().dio.get("https://www.xidian.edu.cn");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Light Charger Pre-Alpha',
+      navigatorKey: alice.getNavigatorKey(),
       theme: ThemeData(
         useMaterial3: true,
         primarySwatch: Colors.deepPurple,
       ),
-      home: isFirst ? const LoginWindow() : const HomePage(),
+      home: widget.isFirst ? const LoginWindow() : const HomePage(),
     );
   }
 }

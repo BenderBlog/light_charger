@@ -22,13 +22,13 @@ class ExamFile extends YjsptSession {
   Future<List<Subject>> get() async {
     String semester = "";
     var firstPost = await useApp("wdksapp");
-    await dio.get(firstPost);
+    await dioYjspt.get(firstPost);
 
     /// Get semester information.
     /// Hard to use, I would rather do it by myself.
     /// Nope, I need to choose~
     developer.log("Seek for the semesters", name: "getExam");
-    semester = await dio
+    semester = await dioYjspt
         .post(
           "https://yjspt.xidian.edu.cn/gsapp/sys/wdksapp/modules/ksxxck/getXnxqList.do",
         )
@@ -38,7 +38,7 @@ class ExamFile extends YjsptSession {
 
     /// wdksap 我的考试安排
     developer.log("My exam arrangemet $semester", name: "getExam");
-    var data = await dio.post(
+    var data = await dioYjspt.post(
       "https://yjspt.xidian.edu.cn/gsapp/sys/wdksapp/modules/ksxxck/wdksxxcx.do",
       queryParameters: {
         "querySetting": '''[
