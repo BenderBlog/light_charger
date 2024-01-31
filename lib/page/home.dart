@@ -9,7 +9,7 @@ import 'package:watermeter_postgraduate/page/homepage/refresh.dart';
 import 'package:watermeter_postgraduate/page/login/jc_captcha.dart';
 import 'package:watermeter_postgraduate/page/setting/setting.dart';
 import 'package:watermeter_postgraduate/repository/preference.dart';
-import 'package:watermeter_postgraduate/repository/xidian_ids/ids_session.dart';
+import 'package:watermeter_postgraduate/repository/ids_session.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

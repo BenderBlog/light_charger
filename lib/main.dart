@@ -19,12 +19,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:watermeter_postgraduate/page/entry_page.dart';
 
-import 'package:watermeter_postgraduate/page/home.dart';
 import 'package:watermeter_postgraduate/page/login/login_window.dart';
 import 'package:watermeter_postgraduate/repository/network_session.dart';
 import 'package:watermeter_postgraduate/repository/preference.dart';
-import 'package:watermeter_postgraduate/repository/xidian_ids/ids_session.dart';
+import 'package:watermeter_postgraduate/repository/ids_session.dart';
 
 void main() async {
   // Make sure the library is initialized.
@@ -102,7 +102,7 @@ class _MyAppState extends State<MyApp> {
         useMaterial3: true,
         primarySwatch: Colors.deepPurple,
       ),
-      home: widget.isFirst ? const LoginWindow() : const HomePage(),
+      home: widget.isFirst ? const LoginWindow() : const EntryPage(),
     );
   }
 }

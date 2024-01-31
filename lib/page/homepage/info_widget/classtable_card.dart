@@ -21,7 +21,7 @@ class ClassTableCard extends StatelessWidget {
                 ),
               );
             case ClassTableState.error:
-              Fluttertoast.showToast(msg: "遇到错误：${c.error?.substring(0, 45)}");
+              Fluttertoast.showToast(msg: "遇到错误：${c.error})}");
             case ClassTableState.fetching:
             case ClassTableState.none:
               Fluttertoast.showToast(msg: "正在获取课表");

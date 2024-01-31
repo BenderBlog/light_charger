@@ -5,7 +5,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:watermeter_postgraduate/controller/exam_controller.dart';
 import 'package:watermeter_postgraduate/page/exam/exam_info_window.dart';
-import 'package:watermeter_postgraduate/repository/xidian_ids/ids_session.dart';
+import 'package:watermeter_postgraduate/repository/ids_session.dart';
 
 class ExamCard extends StatelessWidget {
   const ExamCard({super.key});

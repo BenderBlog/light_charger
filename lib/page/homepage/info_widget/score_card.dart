@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:watermeter_postgraduate/page/score/score.dart';
-import 'package:watermeter_postgraduate/repository/xidian_ids/ids_session.dart';
+import 'package:watermeter_postgraduate/repository/ids_session.dart';
 
 class ScoreCard extends StatelessWidget {
   const ScoreCard({super.key});

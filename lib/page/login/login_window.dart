@@ -16,9 +16,9 @@ import 'package:watermeter_postgraduate/page/login/app_icon.dart';
 import 'package:watermeter_postgraduate/page/login/jc_captcha.dart';
 import 'package:watermeter_postgraduate/repository/preference.dart'
     as preference;
-import 'package:watermeter_postgraduate/repository/xidian_ids/ids_session.dart';
+import 'package:watermeter_postgraduate/repository/ids_session.dart';
 import 'package:watermeter_postgraduate/page/login/bottom_buttons.dart';
-import 'package:watermeter_postgraduate/repository/xidian_ids/yjspt_session.dart';
+import 'package:watermeter_postgraduate/repository/yjspt_session.dart';
 
 class LoginWindow extends StatefulWidget {
   const LoginWindow({super.key});
@@ -158,7 +158,6 @@ class _LoginWindowState extends State<LoginWindow> {
       hideValue: true,
       completed: Completed(completedMsg: "登录成功"),
     );
-    YjsptSession ses = YjsptSession();
 
     try {
       await ses.clearCookieJar();
@@ -197,6 +196,7 @@ class _LoginWindowState extends State<LoginWindow> {
           "idsPassword",
           _idsPasswordController.text,
         );
+        await ses.getInformation();
         if (mounted) {
           if (pd.isOpen()) pd.close();
           Navigator.of(context).pushReplacement(

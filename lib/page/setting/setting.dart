@@ -34,14 +34,16 @@ class _SettingWindowState extends State<SettingWindow> {
     return SafeArea(
       child: SettingsList(
         lightTheme: SettingsThemeData(
-            settingsListBackground: Theme.of(context).colorScheme.background),
+          settingsListBackground: Theme.of(context).colorScheme.background,
+        ),
         sections: [
           SettingsSection(
             tiles: <SettingsTile>[
               SettingsTile.navigation(
-                title: const Text('Traintime PDA by BenderBlog'),
+                title: const Text('启明灯软件 - 测试版'),
                 value: const Text(
-                    "版本号 Postgraduate Testing Prototype, MPL v2.0\n(codename watermeter_postgraduate)"),
+                  "Copyright 2024 BenderBlog Rodriguez and contributors",
+                ),
                 onPressed: (context) => launchUrl(
                   Uri.parse(
                       "https://github.com/BenderBlog/watermeter_postgraduate"),
@@ -133,35 +135,6 @@ class _SettingWindowState extends State<SettingWindow> {
                       }
                     }
                   }),
-            ],
-          ),
-          SettingsSection(
-            title: const Text('关于本软件'),
-            tiles: <SettingsTile>[
-              SettingsTile.navigation(
-                title: const Text('受到这个软件的启发'),
-                value: const Text("Robotxm's Myxdu (电表)"),
-                onPressed: (context) => launchUrl(
-                  Uri.parse("https://myxdu.moefactory.com/"),
-                  mode: LaunchMode.externalApplication,
-                ),
-                // Quake: Make your attack 4 times stronger, ALSO AN ANGRILY FACE.
-                // onPressed: (context) => _playEffect("QuadDamage.wav"),
-              ),
-              SettingsTile.navigation(
-                title: const Text('网络逻辑'),
-                value: const Text("西电开源社区的 Xidian-Script，本人的抓包"),
-                onPressed: (context) => launchUrl(
-                  Uri.parse("https://github.com/xdlinux/xidian-scripts"),
-                  mode: LaunchMode.externalApplication,
-                ),
-                // Quake: You don't need to fear about anything, even Shub-Niggurath...
-                // onPressed: (context) => _playEffect("HellProtecting.wav"),
-              ),
-              SettingsTile.navigation(
-                title: const Text('感谢一个人'),
-                value: const Text("eGl6aQ=="),
-              ),
             ],
           ),
         ],

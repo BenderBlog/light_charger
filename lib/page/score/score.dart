@@ -21,7 +21,7 @@ import 'package:watermeter_postgraduate/model/xidian_ids/score.dart';
 import 'package:watermeter_postgraduate/page/score/score_page.dart';
 import 'package:watermeter_postgraduate/page/score/score_state.dart';
 import 'package:watermeter_postgraduate/public_widget/public_widget.dart';
-import 'package:watermeter_postgraduate/repository/xidian_ids/score_session.dart';
+import 'package:watermeter_postgraduate/repository/yjspt_session.dart';
 
 class ScoreWindow extends StatefulWidget {
   const ScoreWindow({super.key});
@@ -41,7 +41,7 @@ class _ScoreWindowState extends State<ScoreWindow> {
     );
   }
 
-  void dataInit() => scoreList = ScoreSession().get();
+  void dataInit() => scoreList = ses.getScore();
 
   @override
   void initState() {

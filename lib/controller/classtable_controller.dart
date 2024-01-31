@@ -19,7 +19,7 @@ import 'package:jiffy/jiffy.dart';
 import 'package:watermeter_postgraduate/repository/preference.dart';
 import 'package:watermeter_postgraduate/model/xidian_ids/classtable.dart';
 import 'package:watermeter_postgraduate/model/home_arrangement.dart';
-import 'package:watermeter_postgraduate/repository/xidian_ids/classtable_session.dart';
+import 'package:watermeter_postgraduate/repository/yjspt_session.dart';
 
 enum ClassTableState {
   fetching,
@@ -224,23 +224,26 @@ class ClassTableController extends GetxController {
   void updateCurrent() {
     if (state != ClassTableState.fetched) return;
 
-    /// Get the start day of the semester. Append offset
-    startDay = DateTime.parse(classTableData.termStartDay)
-        .add(Duration(days: 7 * (int.tryParse(user["swift"] ?? "") ?? 0)));
+    if (classTableData.termStartDay.isNotEmpty) {
+      /// Get the start day of the semester. Append offset
+      startDay = DateTime.parse(classTableData.termStartDay)
+          .add(Duration(days: 7 * (int.tryParse(user["swift"] ?? "") ?? 0)));
 
-    updateTime = Jiffy.now();
+      updateTime = Jiffy.now();
 
-    // Get the current index.
-    int delta = updateTime
-        .diff(Jiffy.parseFromDateTime(startDay), unit: Unit.day)
-        .toInt();
-    if (delta < 0) delta = -7;
-    currentWeek = delta ~/ 7;
-
-    developer.log(
-      "startDay: $startDay, currentWeek: $currentWeek, isNotVacation: $isNotVacation.",
-      name: "[ClassTableController][addUserDefinedClass]",
-    );
+      // Get the current index.
+      int delta = updateTime
+          .diff(Jiffy.parseFromDateTime(startDay), unit: Unit.day)
+          .toInt();
+      if (delta < 0) delta = -7;
+      currentWeek = delta ~/ 7;
+      developer.log(
+        "startDay: $startDay, currentWeek: $currentWeek, isNotVacation: $isNotVacation.",
+        name: "[ClassTableController][addUserDefinedClass]",
+      );
+    } else {
+      currentWeek = -1;
+    }
   }
 
   Future<void> updateClassTable({
@@ -250,7 +253,7 @@ class ClassTableController extends GetxController {
     state = ClassTableState.fetching;
     error = null;
     try {
-      classTableData = await ClassTableFile().get(
+      classTableData = await ses.getClasstable(
         isForce: isForce,
       );
 

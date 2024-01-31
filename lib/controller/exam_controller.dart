@@ -21,7 +21,7 @@ import 'package:jiffy/jiffy.dart';
 import 'package:watermeter_postgraduate/repository/network_session.dart';
 import 'dart:developer' as developer;
 import 'package:watermeter_postgraduate/model/xidian_ids/exam.dart';
-import 'package:watermeter_postgraduate/repository/xidian_ids/exam_session.dart';
+import 'package:watermeter_postgraduate/repository/yjspt_session.dart';
 
 enum ExamStatus {
   cache,
@@ -77,7 +77,9 @@ class ExamController extends GetxController {
         "Init from cache.",
         name: "[ExamController][onInit]",
       );
-      subjects = jsonDecode(file.readAsStringSync());
+      subjects = (jsonDecode(file.readAsStringSync()) as List)
+          .map((e) => Subject.fromJson(e))
+          .toList();
       status = ExamStatus.cache;
     } else {
       subjects = [];
@@ -99,7 +101,7 @@ class ExamController extends GetxController {
     try {
       now = Jiffy.now();
       status = ExamStatus.fetching;
-      subjects = await ExamFile().get();
+      subjects = await ses.getExam();
       status = ExamStatus.fetched;
       error = "";
     } on DioException catch (e, s) {

@@ -17,7 +17,9 @@ import 'package:watermeter_postgraduate/controller/classtable_controller.dart';
 import 'package:watermeter_postgraduate/controller/exam_controller.dart';
 import 'dart:developer' as developer;
 
-import 'package:watermeter_postgraduate/repository/xidian_ids/ids_session.dart';
+import 'package:watermeter_postgraduate/repository/ids_session.dart';
+import 'package:watermeter_postgraduate/repository/preference.dart';
+import 'package:watermeter_postgraduate/repository/yjspt_session.dart';
 // Refresh formula for homepage.
 
 Future<void> _comboLogin({
@@ -30,9 +32,10 @@ Future<void> _comboLogin({
   loginState = IDSLoginState.requesting;
 
   try {
-    await IDSSession().checkAndLogin(
-      target: "https://yjspt.xidian.edu.cn"
-          "/gsapp/sys/yjsemaphome/portal/index.do",
+    await ses.loginYjspt(
+      username: user["idsAccount"]!,
+      password: user["idsPassword"]!,
+      forceReLogin: false,
       sliderCaptcha: sliderCaptcha,
     );
     loginState = IDSLoginState.success;
